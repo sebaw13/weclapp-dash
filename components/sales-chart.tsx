@@ -64,36 +64,38 @@ export default function SalesChart({ chartData }: Props) {
   const { resolvedTheme } = useTheme();
 
   return (
-    <ResponsiveContainer width="100%" height={500}>
-      <BarChart data={modifiedData} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-        <XAxis
-          dataKey="date"
-          stroke={resolvedTheme === "dark" ? "#d1d5db" : "#374151"}
-          tickFormatter={(value) => value} // Wert wird jetzt im gewünschten Format angezeigt
-        />
-        <YAxis 
-          stroke={resolvedTheme === "dark" ? "#d1d5db" : "#374151"} 
-          tickFormatter={formatCurrency} // Formatierung der Y-Achsen-Werte
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#fff",
-            borderColor: resolvedTheme === "dark" ? "#4b5563" : "#e5e7eb",
-            borderRadius: 8,
-          }}
-          labelStyle={{ fontWeight: "bold" }}
-          formatter={(value) => formatCurrency(value as number)} // Formatierung der Tooltip-Werte
-        />
-        <Legend />
-        {categories.map((cat, i) => (
-          <Bar
-            key={cat}
-            dataKey={cat}
-            stackId="a"
-            fill={shadcnPalette[i % shadcnPalette.length]}
+    <div className="w-full">
+      <ResponsiveContainer width="100%" height={500}>
+        <BarChart data={modifiedData} margin={{ top: 16, right: 24, bottom: 16, left: 64 }}>
+          <XAxis
+            dataKey="date"
+            stroke={resolvedTheme === "dark" ? "#d1d5db" : "#374151"}
+            tickFormatter={(value) => value} // Wert wird jetzt im gewünschten Format angezeigt
           />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
+          <YAxis 
+            stroke={resolvedTheme === "dark" ? "#d1d5db" : "#374151"} 
+            tickFormatter={formatCurrency} // Formatierung der Y-Achsen-Werte
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: resolvedTheme === "dark" ? "#1f2937" : "#fff",
+              borderColor: resolvedTheme === "dark" ? "#4b5563" : "#e5e7eb",
+              borderRadius: 8,
+            }}
+            labelStyle={{ fontWeight: "bold" }}
+            formatter={(value) => formatCurrency(value as number)} // Formatierung der Tooltip-Werte
+          />
+          <Legend />
+          {categories.map((cat, i) => (
+            <Bar
+              key={cat}
+              dataKey={cat}
+              stackId="a"
+              fill={shadcnPalette[i % shadcnPalette.length]}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

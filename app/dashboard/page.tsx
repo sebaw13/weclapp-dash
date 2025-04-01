@@ -1,10 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { InfoIcon } from "lucide-react";
-import SalesChart from "@/components/sales-chart";
 import { useEffect, useState } from "react";
+import SalesChart from "@/components/sales-chart";
+import { InfoIcon } from "lucide-react";
 
 export default function DashboardPage() {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -32,7 +30,6 @@ export default function DashboardPage() {
         date,
         ...categories,
       }));
-      console.log("📊 Chart Data Preview", data);
 
       setChartData(data);
     };
@@ -41,18 +38,37 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex-1 w-full flex flex-col gap-8 px-4 items-start">
-      {/* Hinweis und Info-Bereich */}
-      <div className="w-full max-w-6xl">
-        <div className="bg-muted text-sm p-4 rounded-md text-muted-foreground flex gap-3 items-center">
-          <InfoIcon size={16} />
-          <span>Rösteiumsätze pro Tag</span>
+    <div className="w-full px-4 py-6 space-y-6">
+      {/* Erste Zeile: 2 Spalten */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Chart 1 */}
+        <div className="bg-card p-4 rounded-2xl shadow-md">
+          <div className="flex items-center gap-2 mb-4 text-muted-foreground text-sm">
+            <InfoIcon size={16} />
+            <span>Rösteiumsätze pro Tag</span>
+          </div>
+          <SalesChart chartData={chartData} />
+        </div>
+
+        {/* Chart 2 */}
+        <div className="bg-card p-4 rounded-2xl shadow-md text-muted-foreground">
+          <p className="text-sm">☕️ Weitere Analyse</p>
         </div>
       </div>
 
-      {/* SalesChart unterhalb der Navbar und links ausgerichtet */}
-      <div className="w-full max-w-5xl mt-4">
-        <SalesChart chartData={chartData} />
+      {/* Zweite Zeile: 3 Spalten */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="bg-card p-4 rounded-2xl shadow-md text-muted-foreground">
+          <p className="text-sm">📦 Platzhalter 1</p>
+        </div>
+
+        <div className="bg-card p-4 rounded-2xl shadow-md text-muted-foreground">
+          <p className="text-sm">📈 Platzhalter 2</p>
+        </div>
+
+        <div className="bg-card p-4 rounded-2xl shadow-md text-muted-foreground">
+          <p className="text-sm">📊 Platzhalter 3</p>
+        </div>
       </div>
     </div>
   );
