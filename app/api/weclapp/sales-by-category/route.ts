@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import pLimit from "p-limit";
 
 export async function GET() {
   const apiKey = process.env.WECLAPP_API_KEY;
@@ -39,36 +40,44 @@ export async function GET() {
   const articleToCategoryId = new Map<string, string>();
   const categoryIdToName = new Map<string, string>();
 
-  for (const articleId of Array.from(articleIds)) {
-    const articleRes = await fetch(`${domain}/webapp/api/v1/article/id/${articleId}`, {
-      headers: { AuthenticationToken: apiKey },
-    });
+  const limit = pLimit(5); // Begrenze die Anzahl gleichzeitiger Anfragen auf 5
 
-    if (!articleRes.ok) continue;
-    const article = await articleRes.json();
-    const categoryId = article.articleCategoryId;
+  const articlePromises = Array.from(articleIds).map((articleId) =>
+    limit(async () => {
+      const articleRes = await fetch(`${domain}/webapp/api/v1/article/id/${articleId}`, {
+        headers: { AuthenticationToken: apiKey },
+      });
 
-    if (categoryId) {
-      articleToCategoryId.set(articleId, categoryId);
+      if (!articleRes.ok) return;
 
-      if (!categoryIdToName.has(categoryId)) {
-        const catRes = await fetch(
-          `${domain}/webapp/api/v1/articleCategory/id/${categoryId}`,
-          { headers: { AuthenticationToken: apiKey } }
-        );
+      const article = await articleRes.json();
+      const categoryId = article.articleCategoryId;
 
-        if (catRes.ok) {
-          const category = await catRes.json();
-          categoryIdToName.set(categoryId, category.name ?? "Unbekannt");
-        } else {
-          categoryIdToName.set(categoryId, "Unbekannt");
+      if (categoryId) {
+        articleToCategoryId.set(articleId, categoryId);
+
+        if (!categoryIdToName.has(categoryId)) {
+          const catRes = await fetch(
+            `${domain}/webapp/api/v1/articleCategory/id/${categoryId}`,
+            { headers: { AuthenticationToken: apiKey } }
+          );
+
+          if (catRes.ok) {
+            const category = await catRes.json();
+            categoryIdToName.set(categoryId, category.name ?? "Unbekannt");
+          } else {
+            categoryIdToName.set(categoryId, "Unbekannt");
+          }
         }
+      } else {
+        articleToCategoryId.set(articleId, "unknown");
+        categoryIdToName.set("unknown", "Unbekannt");
       }
-    } else {
-      articleToCategoryId.set(articleId, "unknown");
-      categoryIdToName.set("unknown", "Unbekannt");
-    }
-  }
+    })
+  );
+
+  // Warte auf alle Artikelanfragen
+  await Promise.all(articlePromises);
 
   // Orders mit Kategorie anreichern
   const enriched = orders.map((order: any) => ({

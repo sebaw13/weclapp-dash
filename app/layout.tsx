@@ -37,17 +37,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-screen flex flex-col items-start"> {/* Geändert von 'items-center' zu 'items-start' */}
-            <div className="flex-1 w-full flex flex-col gap-20 items-start"> {/* Links ausgerichtet */}
-              <nav className="w-full flex justify-between border-b border-b-foreground/10 h-16">
+          <main className="min-h-screen flex flex-col items-center">
+            <div className="flex-1 w-full flex flex-col gap-20 items-center">
+              <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-                  <div className="text-lg font-bold">Majas Coffee Dashboard ☕️</div>
+                <div className="text-lg font-bold">Majas Coffee Dashboard ☕️</div>
+
+        
                   {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                 </div>
               </nav>
-
-              {/* Der Inhalt (children) wird nun linksbündig dargestellt */}
-              <div className="flex flex-col max-w-5xl p-5 items-start">
+              <div className="flex flex-col gap-20 max-w-5xl p-5">
                 {children}
               </div>
 
@@ -60,7 +60,7 @@ export default function RootLayout({
                     className="font-bold hover:underline"
                     rel="noreferrer"
                   >
-                    Sebastian Wieber
+                    Sebastian
                   </a>
                 </p>
                 <ThemeSwitcher />
