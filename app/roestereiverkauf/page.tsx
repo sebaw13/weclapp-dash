@@ -6,7 +6,7 @@ import WeekendSalesChart from "@/app/components/WeekendSalesChart";
 import MonthlySalesComparisonChart from "@/app/components/MonthlySalesComparisonChart";
 import { InfoIcon } from "lucide-react";
 
-export default function DashboardPage() {
+export default function RoestereiVerkaufPage() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [weekendData, setWeekendData] = useState<any[]>([]);
 

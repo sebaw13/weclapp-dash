@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server"; // dein Supabase-Server-Client
 import pLimit from "p-limit";
 
 export async function GET() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 🔐 Nur eingeloggte Nutzer dürfen weiter
+  if (!user) {
+    return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 });
+  }
+
   const apiKey = process.env.WECLAPP_API_KEY;
   const domain = process.env.WECLAPP_DOMAIN;
   const customerNumber = "10052";
@@ -16,7 +27,7 @@ export async function GET() {
     `${domain}/webapp/api/v1/salesOrder?salesChannel-eq=GROSS2&pageSize=1000&createdDate-gt=${createdSince}`,
     {
       headers: {
-        AuthenticationToken: apiKey,
+        AuthenticationToken: apiKey as string, // Typ-Sicherheit
       },
     }
   );
@@ -28,7 +39,6 @@ export async function GET() {
 
   const { result: orders = [] } = await salesRes.json();
 
-  // Artikel-IDs extrahieren
   const articleIds = new Set<string>();
   for (const order of orders) {
     for (const item of order.orderItems || []) {
@@ -36,16 +46,15 @@ export async function GET() {
     }
   }
 
-  // Artikel-Infos abrufen
   const articleToCategoryId = new Map<string, string>();
   const categoryIdToName = new Map<string, string>();
 
-  const limit = pLimit(5); // Begrenze die Anzahl gleichzeitiger Anfragen auf 5
+  const limit = pLimit(5);
 
   const articlePromises = Array.from(articleIds).map((articleId) =>
     limit(async () => {
       const articleRes = await fetch(`${domain}/webapp/api/v1/article/id/${articleId}`, {
-        headers: { AuthenticationToken: apiKey },
+        headers: { AuthenticationToken: apiKey as string },
       });
 
       if (!articleRes.ok) return;
@@ -59,7 +68,7 @@ export async function GET() {
         if (!categoryIdToName.has(categoryId)) {
           const catRes = await fetch(
             `${domain}/webapp/api/v1/articleCategory/id/${categoryId}`,
-            { headers: { AuthenticationToken: apiKey } }
+            { headers: { AuthenticationToken: apiKey as string } }
           );
 
           if (catRes.ok) {
@@ -76,10 +85,8 @@ export async function GET() {
     })
   );
 
-  // Warte auf alle Artikelanfragen
   await Promise.all(articlePromises);
 
-  // Orders mit Kategorie anreichern
   const enriched = orders.map((order: any) => ({
     orderNumber: order.orderNumber,
     date: new Date(order.orderDate).toISOString().split("T")[0],
