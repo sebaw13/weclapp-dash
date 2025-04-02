@@ -77,7 +77,7 @@ export function AppSidebar() {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/dashboard" className="flex items-center gap-2">
                 <img src="/logo.svg" alt="Majas Coffee Logo" className="h-5 w-5" />
                 <span className="text-base font-semibold font-pafico">Majas Coffee</span>
               </Link>

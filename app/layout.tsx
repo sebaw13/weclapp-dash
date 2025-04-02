@@ -1,9 +1,8 @@
 import "./globals.css"
 import { Geist } from "next/font/google"
+import Head from "next/head"
 import { Pacifico } from "next/font/google"
 import { ThemeProvider } from "next-themes"
-
-
 import { ThemeSwitcher } from "@/app/components/theme-switcher"
 import { AppSidebar } from "@/app/components/AppSidebar"
 import { SidebarProvider, SidebarInset } from "@/app/components/ui/sidebar"
@@ -35,7 +34,10 @@ export default async function RootLayout({
 
   return (
     <>
-     
+  
+      <Head>
+        
+      </Head>
 
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <html lang="en" className={`${geistSans.className} ${pacifico.variable}`} suppressHydrationWarning>
