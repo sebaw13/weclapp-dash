@@ -1,15 +1,16 @@
 import "./globals.css"
 import { Geist } from "next/font/google"
-import Head from "next/head"
 import { Pacifico } from "next/font/google"
 import { ThemeProvider } from "next-themes"
-import { ThemeSwitcher } from "@/app/components/theme-switcher"
 import { AppSidebar } from "@/app/components/AppSidebar"
 import { SidebarProvider, SidebarInset } from "@/app/components/ui/sidebar"
 import HeaderAuth from "@/app/components/header-auth"
 import { hasEnvVars } from "@/utils/supabase/check-env-vars"
 import { EnvVarWarning } from "@/app/components/env-var-warning"
 import { createClient } from "@/utils/supabase/server"
+import { ReactNode } from "react"
+import Head from "next/head"
+import { ThemeSwitcher } from "@/app/components/theme-switcher"
 
 const geistSans = Geist({
   display: "swap",
@@ -25,7 +26,7 @@ const pacifico = Pacifico({
 export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode;
 }) {
   const supabase = createClient()
   const {
@@ -34,9 +35,8 @@ export default async function RootLayout({
 
   return (
     <>
-  
-      <Head>
-        
+      <Head children={undefined}>
+        {/* Hier kannst du die Kopfzeilen für das Layout einfügen */}
       </Head>
 
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
@@ -48,10 +48,9 @@ export default async function RootLayout({
 
                 <SidebarInset>
                   <div className="flex flex-col min-h-screen w-full">
-                  <nav className="w-full border-b border-b-foreground/10 h-16 flex items-center justify-end px-6">
-  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
-</nav>
-
+                    <nav className="w-full border-b border-b-foreground/10 h-16 flex items-center justify-end px-6">
+                      {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
+                    </nav>
 
                     <main className="flex-1 w-full p-6">{children}</main>
 
