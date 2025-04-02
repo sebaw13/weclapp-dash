@@ -1,6 +1,9 @@
-// app/api/weclapp/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import NodeCache from "node-cache";
+
+// Erstelle einen Cache für Lagerbestände mit einer Lebensdauer von 1 Stunde
+const stockCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
 export async function GET() {
   const supabase = createClient();
@@ -18,6 +21,13 @@ export async function GET() {
 
   if (!apiKey || !domain) {
     return NextResponse.json({ error: "Missing env vars" }, { status: 500 });
+  }
+
+  // Versuchen, die Daten aus dem Cache zu holen
+  const cachedStockData = stockCache.get("warehouseStock");
+  if (cachedStockData) {
+    console.log("Daten aus dem Cache geladen");
+    return NextResponse.json({ data: cachedStockData });
   }
 
   try {
@@ -61,6 +71,9 @@ export async function GET() {
         stock: stockSum,
       });
     }
+
+    // Speichern der abgerufenen Lagerbestände im Cache
+    stockCache.set("warehouseStock", results);
 
     return NextResponse.json({ data: results });
   } catch (err: unknown) {

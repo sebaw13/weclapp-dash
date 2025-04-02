@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import NodeCache from 'node-cache';
+
+// Erstelle einen Cache mit einer Lebensdauer von 60 Minuten (3600 Sekunden)
+const cache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
 export async function GET() {
   const apiKey = process.env.WECLAPP_API_KEY;
@@ -6,6 +10,15 @@ export async function GET() {
 
   if (!apiKey || !domain) {
     return NextResponse.json({ error: "Missing env vars" }, { status: 500 });
+  }
+
+  const cacheKey = 'wip-roestkaffee'; // Einfache Cache-Identifikation für diesen API-Endpunkt
+
+  // Prüfen, ob die Daten bereits im Cache sind
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    console.log('Daten aus dem Cache geladen');
+    return NextResponse.json({ data: cachedData });
   }
 
   const articleUrl = `${domain}/webapp/api/v1/article?articleCategoryId-eq=4271`;
@@ -16,7 +29,7 @@ export async function GET() {
       method: 'GET',
       headers: {
         'AuthenticationToken': apiKey || '', // Sicherstellen, dass apiKey immer ein String ist
-      } as HeadersInit, // TypeScript weiß jetzt, dass dies dem erwarteten Header-Typ entspricht
+      } as HeadersInit,
     });
 
     if (!articleResponse.ok) {
@@ -43,6 +56,9 @@ export async function GET() {
       allMovements.push(...enriched);
     }
 
+    // Speichern der abgerufenen Daten im Cache
+    cache.set(cacheKey, allMovements);
+
     return NextResponse.json({ data: allMovements });
 
   } catch (error: unknown) {
@@ -68,7 +84,7 @@ const fetchWarehouseMovements = async (articleId: string) => {
     const response = await fetch(url, {
       headers: {
         'AuthenticationToken': apiKey || '', // Sicherstellen, dass apiKey immer ein String ist
-      } as HeadersInit, // TypeScript weiß jetzt, dass dies dem erwarteten Header-Typ entspricht
+      } as HeadersInit,
     });
 
     if (!response.ok) break;

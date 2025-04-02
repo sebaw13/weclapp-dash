@@ -1,12 +1,10 @@
 "use client"
 
 import {
-  LayoutDashboardIcon,
   BarChartIcon,
   ClipboardListIcon,
   PackageIcon,
   CoffeeIcon,
-  ArrowUpCircleIcon,
   HelpCircleIcon,
   SearchIcon,
   SettingsIcon,
@@ -14,7 +12,6 @@ import {
 } from "lucide-react"
 
 import Link from "next/link"
-import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 import {
@@ -69,7 +66,7 @@ const navSecondary = [
 ]
 
 export function AppSidebar() {
-  const isMobile = useIsMobile() // optional, wird durch Sidebar intern oft mitgesteuert
+  const isMobile = useIsMobile()
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -80,9 +77,9 @@ export function AppSidebar() {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Majas Coffee</span>
+              <Link href="/" className="flex items-center gap-2">
+                <img src="/logo.svg" alt="Majas Coffee Logo" className="h-5 w-5" />
+                <span className="text-base font-semibold font-pafico">Majas Coffee</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -134,4 +131,4 @@ export function AppSidebar() {
       </SidebarFooter>
     </Sidebar>
   )
-}
+} 

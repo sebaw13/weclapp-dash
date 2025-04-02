@@ -4,6 +4,10 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, getMonth, getYear, addMonths } from "date-fns";
+import NodeCache from 'node-cache';
+
+// Erstelle einen Cache mit einer Lebensdauer von 60 Minuten (3600 Sekunden)
+const cache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
 interface Movement {
   id: string;
@@ -31,6 +35,7 @@ interface ForecastData {
   forecast: MonthlyData;
 }
 
+// Hilfsfunktionen
 const getMonthKey = (timestamp: number) => {
   const date = new Date(timestamp);
   return `${getYear(date)}-${String(getMonth(date) + 1).padStart(2, "0")}`;
@@ -65,7 +70,6 @@ const holtWintersForecast = (data: number[], alpha = 0.2, beta = 0.1, gamma = 0.
   const seasonals: number[] = [];
   const forecast: number[] = [];
 
-  // Initial values
   const seasonAvg = data.slice(0, seasonLength);
   const seasonMean = seasonAvg.reduce((a, b) => a + b, 0) / seasonAvg.length;
   for (let i = 0; i < seasonLength; i++) {
@@ -107,50 +111,62 @@ const WipRoestkaffeeForecasts: React.FC = () => {
   const forecastMonths = getNextThreeMonths();
 
   useEffect(() => {
-    fetch("/api/weclapp/verbrauch/wip-roestkaffee")
-      .then((res) => res.json())
-      .then((json) => {
-        const filtered = json.data.filter((m: Movement) => new Date(m.postingDate).getFullYear() >= 2024);
+    const cacheKey = 'wip-roestkaffee'; // Cache-Schlüssel
 
-        const grouped: { [key: string]: ForecastData } = {};
+    // Versuche, die Daten aus dem Cache zu holen
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      setData(cachedData as ForecastData[]);
+      setLoading(false);
+    } else {
+      fetch("/api/weclapp/verbrauch/wip-roestkaffee")
+        .then((res) => res.json())
+        .then((json) => {
+          const filtered = json.data.filter((m: Movement) => new Date(m.postingDate).getFullYear() >= 2024);
 
-        for (const movement of filtered) {
-          const quantity = parseFloat(movement.quantity) * -1;
-          const monthKey = getMonthKey(movement.postingDate);
+          const grouped: { [key: string]: ForecastData } = {};
 
-          if (!grouped[movement.articleId]) {
-            grouped[movement.articleId] = {
-              articleId: movement.articleId,
-              articleNumber: movement.articleNumber,
-              name: movement.name,
-              monthly: {},
-              forecast: {}
-            };
+          for (const movement of filtered) {
+            const quantity = parseFloat(movement.quantity) * -1;
+            const monthKey = getMonthKey(movement.postingDate);
+
+            if (!grouped[movement.articleId]) {
+              grouped[movement.articleId] = {
+                articleId: movement.articleId,
+                articleNumber: movement.articleNumber,
+                name: movement.name,
+                monthly: {},
+                forecast: {}
+              };
+            }
+
+            grouped[movement.articleId].monthly[monthKey] =
+              (grouped[movement.articleId].monthly[monthKey] || 0) + quantity;
           }
 
-          grouped[movement.articleId].monthly[monthKey] =
-            (grouped[movement.articleId].monthly[monthKey] || 0) + quantity;
-        }
+          Object.values(grouped).forEach((item) => {
+            const orderedKeys = Object.keys(item.monthly).sort();
+            const pastValues = orderedKeys.map((key) => item.monthly[key]);
 
-        Object.values(grouped).forEach((item) => {
-          const orderedKeys = Object.keys(item.monthly).sort();
-          const pastValues = orderedKeys.map((key) => item.monthly[key]);
+            if (pastValues.length >= 12) {
+              const forecast = holtWintersForecast(pastValues);
+              forecastMonths.forEach((monthKey, idx) => {
+                item.forecast[monthKey] = parseFloat(forecast[idx]?.toFixed(2) || "0");
+              });
+            }
+          });
 
-          if (pastValues.length >= 12) {
-            const forecast = holtWintersForecast(pastValues);
-            forecastMonths.forEach((monthKey, idx) => {
-              item.forecast[monthKey] = parseFloat(forecast[idx]?.toFixed(2) || "0");
-            });
-          }
+          setData(Object.values(grouped));
+          setLoading(false);
+
+          // Speichern der abgerufenen Daten im Cache
+          cache.set(cacheKey, Object.values(grouped));
+        })
+        .catch((err) => {
+          console.error("Fehler beim Laden der Daten:", err);
+          setLoading(false);
         });
-
-        setData(Object.values(grouped));
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Fehler beim Laden der Daten:", err);
-        setLoading(false);
-      });
+    }
   }, []);
 
   if (loading) return <div className="p-4">Lade Daten...</div>;
