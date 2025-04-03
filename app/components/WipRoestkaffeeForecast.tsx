@@ -2,9 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format, getMonth, getYear, addMonths } from "date-fns";
-import NodeCache from 'node-cache';
+import NodeCache from "node-cache";
 
 // Erstelle einen Cache mit einer Lebensdauer von 60 Minuten (3600 Sekunden)
 const cache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
@@ -176,41 +184,44 @@ const WipRoestkaffeeForecasts: React.FC = () => {
       <Card className="w-full max-w-full">
         <CardContent>
           <h2 className="text-xl font-bold mb-4">WIP Röstkaffee Forecasts nach Monat (seit 01/2024)</h2>
-          <div className="overflow-x-auto">
-            <Table className="min-w-fit">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 bg-white z-10">Artikel</TableHead>
+          <Table>
+            <TableCaption>Prognosen und historische Werte für WIP Röstkaffee</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="sticky left-0 bg-white z-10">Artikel</TableHead>
+                {forecastMonths.map((month) => (
+                  <TableHead key={month} className="whitespace-nowrap text-blue-600">
+                    Prognose {month}
+                  </TableHead>
+                ))}
+                {months.map((month) => (
+                  <TableHead key={month} className="whitespace-nowrap">
+                    {month}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((item) => (
+                <TableRow key={item.articleId}>
+                  <TableCell className="sticky left-0 bg-white z-10 whitespace-nowrap">
+                    <div className="font-semibold">{item.articleNumber}</div>
+                    <div className="text-sm text-muted-foreground">{item.name}</div>
+                  </TableCell>
                   {forecastMonths.map((month) => (
-                    <TableHead key={month} className="whitespace-nowrap text-blue-600">Prognose {month}</TableHead>
+                    <TableCell key={month} className="whitespace-nowrap text-blue-600">
+                      {item.forecast[month]?.toFixed(2) || "-"}
+                    </TableCell>
                   ))}
                   {months.map((month) => (
-                    <TableHead key={month} className="whitespace-nowrap">{month}</TableHead>
+                    <TableCell key={month} className="whitespace-nowrap">
+                      {item.monthly[month]?.toFixed(2) || "-"}
+                    </TableCell>
                   ))}
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((item) => (
-                  <TableRow key={item.articleId}>
-                    <TableCell className="sticky left-0 bg-white z-10 whitespace-nowrap">
-                      <div className="font-semibold">{item.articleNumber}</div>
-                      <div className="text-sm text-muted-foreground">{item.name}</div>
-                    </TableCell>
-                    {forecastMonths.map((month) => (
-                      <TableCell key={month} className="whitespace-nowrap text-blue-600">
-                        {item.forecast[month]?.toFixed(2) || "-"}
-                      </TableCell>
-                    ))}
-                    {months.map((month) => (
-                      <TableCell key={month} className="whitespace-nowrap">
-                        {item.monthly[month]?.toFixed(2) || "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
